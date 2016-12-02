@@ -1,0 +1,18 @@
+{%extends "base.html"%}
+
+{%block content%}
+	<div class="header-continue">
+		<form method="post">
+			<input type="submit" value="New Post">	
+		</form>		
+	</div>
+
+	
+	{%for article in articles%}
+	<article>
+		<p class="article-title">{{article.title}}</p>
+		<p class="date">{{article.date.strftime("%b %d, %Y")}}</p>
+		<p class="article-content">{{article.text}}</p>
+	</article>
+	{%endfor%}
+{%endblock%}

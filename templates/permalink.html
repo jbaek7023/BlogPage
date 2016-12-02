@@ -1,0 +1,16 @@
+{%extends "base.html"%}
+
+{%block content%}
+
+    <h2>Your Post has been successfully posted!</h2>
+    
+    <article>
+        <p class="article-title">{{article.title}}</p>
+        <p class="date">{{article.date.strftime("%b %d, %Y")}}</p>
+        <p class="article-content">{{article.text}}</p>
+    </article>
+    
+    <form method="post"><!--Redirect to /blog-->
+        <input type="submit" value="Go to Main">
+    </form>
+{%endblock%}

@@ -1,0 +1,133 @@
+body {
+    font-family: Arial, san-serif;
+    font-size: 19px;
+    color: #111111;
+    width: 800px;
+    margin: 0 auto;
+    padding: 10px;
+
+    display: block;
+}
+
+h2 {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    content-bottom:0px;
+}
+
+.error {
+    color: red;
+    position: absolute;
+    right:150px;
+    top:5px;
+}
+
+.container {
+    width: 100%;
+    margin: 30px;
+}
+
+header {
+    width: 100%;
+
+    text-align: center;
+    color: #222;
+    font-size: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    margin-bottom: 20px;
+
+    border-radius: 5px;
+    border: 2px dotted #111111;
+}
+
+a {
+    text-decoration: none;
+}
+
+.header-continue {
+    margin-bottom: 60px;
+}
+
+input[type=text] {
+    width: 100%;
+
+    font-family: monospace;
+    padding:5px;
+    border: 2px solid #ccc;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+}
+
+input[type=submit] {
+    font-family: monospace;
+    padding: 5px 15px;
+    background: #ccc;
+    border: 0 none;
+    cursor: pointer;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    float: right;
+
+    width: 8em;
+    height: 2em;
+    font-size: 17px;
+}
+
+textarea {
+    width: 100%;
+    height: 400px;
+
+    padding:5px;
+    border: 2px solid #ccc;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+
+    margin-bottom: 10px;
+}
+
+.new-post {
+    width: 700px;
+}
+
+article {
+    position: relative;
+}
+
+.article-title {
+    padding-left: 10px;
+
+    position: relative;
+    padding-bottom: 7px;
+    border-bottom: 3px solid #666;
+    font-size: 27px;
+    font-weight: bold;
+
+    margin-bottom: 10px;
+}
+
+.date {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+}
+
+.article-content {
+    padding-left: 10px;
+
+    margin-top:0px;
+    margin-bottom: 40px;
+}
+
+.new-post-title {
+    font-size: 40px;
+    margin-top:40px;
+    margin-bottom: 30px;
+    font-weight: bold;
+}
+
+.new-post-font {
+    font-size: 25px;
+    letter-spacing: 2px;
+}
