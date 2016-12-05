@@ -9,7 +9,22 @@
 <body>
     <div class="container">
         <header>
-            <h1><a href="/blog">Welcome to Jaemin's Blog</a></h1>
+            {%if user%}
+                <div class="user_auth">
+                    <p class="user_auth_p">
+                        Hello, {{user.name}} | <a href="/blog/logout">logout</a>
+                    </p>
+                </div>
+            {%else%}
+                <div class="user_auth">
+                    <a href="/blog/login">Login</a> | 
+                    <a href="/blog/signup">SignUp</a>            
+                </div>
+            {%endif%}
+            <h1 class="blog_header">
+                <a href="/blog">Hello Blog</a>
+            </h1>
+            
         </header>  
         {%block content%}
         {%endblock%} 

@@ -142,3 +142,23 @@ article {
     font-size: 25px;
     letter-spacing: 2px;
 }
+
+.user_auth {
+    position: relative;
+    text-align: right;
+    text-align: top;
+    vertical-align: text-top;
+}
+
+.blog_header {
+    margin-top: 10px;
+}
+
+.user_auth_p {
+    margin-top: 0;
+}
+
+.ed {
+    font-size: 14px;
+    padding-left: 10px;
+}

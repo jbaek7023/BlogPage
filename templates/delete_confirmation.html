@@ -1,0 +1,11 @@
+{%extends "base.html"%}
+
+{%block content%}
+    <article>
+        <p class="article-title">Post "{{title}}" has been deleted! </p>
+    </article>
+    
+    <form method="post"><!--Redirect to /blog-->
+        <input type="submit" value="Go To Main">
+    </form>
+{%endblock%}

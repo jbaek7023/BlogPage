@@ -1,0 +1,23 @@
+{%extends "base.html"%}
+
+{%block content%}
+    <div class="new-post">
+        <form method="post">
+            <div class="new-post-title">new post</div>  
+            <label>
+                <div class="new-post-font">Subject</div>
+                <input type="text" name="subject" placeholder="Enter Subject" value="{{title}}">
+            </label>
+            <br>
+            <br>
+            <label>
+                <div class="new-post-font">Content</div>
+                <textarea name="content" placeholder="Enter the Content">{{text}}</textarea>
+            </label>
+            <div style="position:relative;">
+                <div class="error">{{error}}</div>
+            </div>
+            <input type="submit" value="Submit">    
+        </form>
+    </div>
+{%endblock%}

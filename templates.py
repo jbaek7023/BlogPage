@@ -49,7 +49,6 @@ class Handler(webapp2.RequestHandler):
 		webapp2.RequestHandler.initialize(self, *a, **kw)
 		uid = self.read_secure_cookie('user_id')
 		self.user=uid and User.by_id(int(uid))
-
 	def write(self, *a, **kw):
 		self.response.out.write(*a, **kw)
 
@@ -130,7 +129,7 @@ class SignUp(Handler):
 	Sign up page
 	"""
 	def get(self):
-		self.render("signup-form.html")
+		self.render("signup-form.html", user=self.user)
 
 	def post(self):
 		have_error = False
@@ -177,7 +176,7 @@ class SignUp(Handler):
 class Welcome(Handler):
     def get(self):
 		if self.user:
-			self.render('welcome.html', username = self.user.name)
+			self.render('welcome.html', username = self.user.name, user=self.user)
 		else:
 			self.redirect('/blog/signup')
 
@@ -187,7 +186,7 @@ class Welcome(Handler):
 
 class Login(Handler):
 	def get(self):
-		self.render("login.html")
+		self.render("login.html", user=self.user)
 
 	def post(self):
 		#check to see if it's valid username and password combination 
@@ -213,7 +212,9 @@ class Login(Handler):
 class Logout(Handler):
 	def get(self):
 		self.logout()
-		self.redirect('/blog/login')
+		# uid = self.read_secure_cookie('user_id')
+		# user = uid and User.by_id(int(uid))
+		self.redirect('/blog')
 
 class Article(db.Model):
 	"""DB model for article"""
@@ -221,25 +222,37 @@ class Article(db.Model):
 	date = db.DateTimeProperty(auto_now_add=True)
 	text = db.TextProperty(required=True)
 	last_modified = db.DateTimeProperty(auto_now=True)
+	likes = db.IntegerProperty(required=True)
+	who_liked = db.ListProperty(str)
 
 	def render(self):
 		self._render_text = self.content.replace('\n', '<br>')
 		return render_str("main.html", article = self)
+
+	@classmethod
+	def by_id(self, post_id):
+		key = db.Key.from_path('Article', int(post_id))
+		article = db.get(key)
+		return article
 
 class MainPage(Handler):
 	"""Main Handler"""
 	def get(self):
 		#show up to 10 recent articles 
 		articles = db.GqlQuery("select * from Article order by date desc limit 10")
-		self.render("main.html", articles = articles)
+
+		#find user from cookie... 
+		# uid = self.read_secure_cookie("user_id")
+		# user = uid and User.by_id(int(uid))
+		self.render("main.html", articles = articles, user=self.user)
 
 	def post(self):
 		self.redirect("/blog/newpost")
 
 class NewPost(Handler):
 	"""New Post Handler"""
-	def get(self):
-		self.render("new_post.html")
+	def get(self):		
+		self.render("new_post.html", user = self.user)
 
 	def post(self):
 		subject = self.request.get('subject')
@@ -249,7 +262,9 @@ class NewPost(Handler):
 		if subject and content:
 			article = Article(
 				title=subject, 
-				text=content)
+				text=content,
+				likes=0,
+				who_liked=[])
 			#put the article to db
 			article.put()
 			self.redirect('/blog/%s' % str(article.key().id()))
@@ -258,29 +273,100 @@ class NewPost(Handler):
 			error = "Subject or Content is missing"
 			self.render(
 				"new_post.html",
-				subject=subject,
-				content=content,
-				error=error)
+				title=subject,
+				text=content,
+				error=error,
+				likes=0,
+				who_liked=[])
 
 class MadePost(Handler):
 	"""Post Confirmation"""
 	#article id undefined...
 	def get(self, post_id):
-		key = db.Key.from_path('Article', int(post_id))
-		article = db.get(key)
-		
+		article = Article.by_id(post_id)
 		if not article:
 			self.error(404)
 			return
 
 		self.render(
 			"permalink.html",
-			article=article, key=key, article_id=post_id)
+			article=article)
 
 	def post(self, post_id):
 		self.redirect('/blog')
 
+class EditPost(Handler):
+	def get(self, post_id):	
+		#get post
+		article = Article.by_id(post_id)
+		if not article:
+			self.error(404)
+			return
+		
+		#send it to edit_post page. 
+		self.render("edit_post.html", 
+			text=article.text,
+			title=article.title, 
+			)
+		
+	def post(self, post_id):
+		#get inputs
+		subject = self.request.get('subject')
+		content = self.request.get('content')
 
+		if subject and content:
+			article = Article.by_id(post_id)
+			article.title = subject
+			article.text = content
+			#update db
+			article.put()
+			self.redirect('/blog/%s' % str(article.key().id()))
+		else:
+			#error check if either one is empty
+			error = "Subject or Content is missing"
+
+			self.render("edit_post.html", 
+			title= subject,
+			text=content,
+			error=error)
+
+class DeletePost(Handler):
+	def get(self, post_id):
+		#same rander behavior with Madepost (permanent link)
+		article = Article.by_id(post_id)
+		if not article:
+			self.error(404)
+			return
+
+		self.render(
+			"delete_post.html",
+			article=article)
+
+	def post(self, post_id):
+		article = Article.by_id(post_id)
+		perma_link = article.key().id()
+		article.delete()
+		# self.redirect("/blog/%s/delete_confirmation"%(permalink))	
+		self.redirect("/blog")
+class DeletePostConfirmation(Handler):
+	def get(self, post_id):
+		article = Article.by_id(post_id)
+		title = article.title
+		self.render(
+			"delete_confirmation.html", title=title)
+	def post(self):
+		self.redirect('/blog')
+
+
+class Admin(Handler):
+	def get(self):
+		self.render("admin.html")
+
+	def post(self):
+		for row in Article.all():
+			row.delete()
+		
+		self.redirect('/blog')
 app = webapp2.WSGIApplication([(
 	'/blog',
 	MainPage
@@ -290,6 +376,15 @@ app = webapp2.WSGIApplication([(
 ), (
 	'/blog/(\d+)',
 	MadePost
+), (
+	'/blog/(\d+)/edit',
+	EditPost
+), (
+	'/blog/(\d+)/delete',
+	DeletePost
+), (
+	'/blog/(\d+)/delete_confirmation',
+	DeletePostConfirmation
 ), (
 	'/blog/signup',
 	SignUp
@@ -302,5 +397,8 @@ app = webapp2.WSGIApplication([(
 ), (
 	'/blog/logout',
 	Logout
+), (
+	'/admin',
+	Admin
 )], debug=True)
 
