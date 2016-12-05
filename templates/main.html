@@ -14,8 +14,13 @@
 			<a href="/blog/{{article.key().id()}}">{{article.title}}</a> 
 			<div class="like-style">{{article.likes}} like</div>
 			<!--if who published and user.id same, display Edit and Delete -->
+
 			<div class="ed">
-				<a href="/blog/{{article.key().id()}}/like">Like</a> | <a href="/blog/{{article.key().id()}}/edit">Edit</a> | <a href="/blog/{{article.key().id()}}/delete">Delete</a>
+				<a href="/blog/{{article.key().id()}}/like">Like</a>
+				{%if article.created_by == uid%}
+				 | <a href="/blog/{{article.key().id()}}/edit">Edit</a> | <a href="/blog/{{article.key().id()}}/delete">Delete</a>
+				{%endif%}
+				
 			</div>
 		</p>
 		<p class="date">{{article.date.strftime("%b %d, %Y")}}</p>

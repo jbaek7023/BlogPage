@@ -94,7 +94,6 @@ def render_str(self, template, **params):
 	return t.render(params)
 
 class User(db.Model):
-	"""User Information"""
 	name = db.StringProperty(required=True)
 	pw_hash = db.StringProperty(required = True)
 	email = db.StringProperty()
@@ -224,6 +223,7 @@ class Article(db.Model):
 	last_modified = db.DateTimeProperty(auto_now=True)
 	likes = db.IntegerProperty(required=True)
 	who_liked = db.ListProperty(str)
+	created_by = db.TextProperty()
 
 	def render(self):
 		self._render_text = self.content.replace('\n', '<br>')
@@ -241,10 +241,12 @@ class MainPage(Handler):
 		#show up to 10 recent articles 
 		articles = db.GqlQuery("select * from Article order by date desc limit 10")
 
+		#user can see edit/post only if creater and user are equal
+
 		#find user from cookie... 
-		# uid = self.read_secure_cookie("user_id")
+		uid = self.read_secure_cookie("user_id")
 		# user = uid and User.by_id(int(uid))
-		self.render("main.html", articles = articles, user=self.user)
+		self.render("main.html", articles = articles, uid=uid, user = self.user)
 
 	def post(self):
 		self.redirect("/blog/newpost")
@@ -252,19 +254,27 @@ class MainPage(Handler):
 class NewPost(Handler):
 	"""New Post Handler"""
 	def get(self):		
-		self.render("new_post.html", user = self.user)
+		#render only if user logged in 
+		if self.user:			
+			self.render("new_post.html", user = self.user)
+		else:
+			error = "You have to login to post"
+			self.render("login.html", error=error)
 
 	def post(self):
 		subject = self.request.get('subject')
 		content = self.request.get('content')
 		
+		#created by someone. someone should be unique
+		uid = self.read_secure_cookie('user_id')
 		#if subject and content filled
 		if subject and content:
 			article = Article(
 				title=subject, 
 				text=content,
 				likes=0,
-				who_liked=[])
+				who_liked=[],
+				created_by=uid)
 			#put the article to db
 			article.put()
 			self.redirect('/blog/%s' % str(article.key().id()))
@@ -277,7 +287,9 @@ class NewPost(Handler):
 				text=content,
 				error=error,
 				likes=0,
-				who_liked=[])
+				who_liked=[],
+				created_by=uid)
+		
 
 class MadePost(Handler):
 	"""Post Confirmation"""
@@ -303,12 +315,19 @@ class EditPost(Handler):
 			self.error(404)
 			return
 		
-		#send it to edit_post page. 
-		self.render("edit_post.html", 
-			text=article.text,
-			title=article.title, 
-			)
-		
+
+		#user can edit/post only if creater and user are equal (security). prevent anonymous from accessing by url:/blog/98792739/edit
+		uid = self.read_secure_cookie('user_id')
+		if article.created_by == uid:
+			#send it to edit_post page. 
+			self.render("edit_post.html", 
+				text=article.text,
+				title=article.title, 
+				)
+		else:
+			#throw error
+			self.error(404)
+
 	def post(self, post_id):
 		#get inputs
 		subject = self.request.get('subject')
@@ -324,7 +343,6 @@ class EditPost(Handler):
 		else:
 			#error check if either one is empty
 			error = "Subject or Content is missing"
-
 			self.render("edit_post.html", 
 			title= subject,
 			text=content,
@@ -346,15 +364,13 @@ class DeletePost(Handler):
 		article = Article.by_id(post_id)
 		perma_link = article.key().id()
 		article.delete()
-		# self.redirect("/blog/%s/delete_confirmation"%(permalink))	
-		self.redirect("/blog")
+		self.redirect("/blog/%s/delete_confirmation"%(perma_link))	
+		
 class DeletePostConfirmation(Handler):
 	def get(self, post_id):
-		article = Article.by_id(post_id)
-		title = article.title
 		self.render(
-			"delete_confirmation.html", title=title)
-	def post(self):
+			"delete_confirmation.html")
+	def post(self, post_id):
 		self.redirect('/blog')
 
 
