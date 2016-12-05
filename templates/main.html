@@ -10,7 +10,7 @@
 	
 	{%for article in articles%}
 	<article>
-		<p class="article-title">{{article.title}}</p>
+		<p class="article-title"><a href="/blog/{{article.key().id()}}">{{article.title}}</a></p>
 		<p class="date">{{article.date.strftime("%b %d, %Y")}}</p>
 		<p class="article-content">{{article.text}}</p>
 	</article>

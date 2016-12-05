@@ -9,6 +9,13 @@ body {
     display: block;
 }
 
+a {
+    color: #111111; 
+
+}
+
+
+
 h2 {
     font-size: 22px;
     font-weight: bold;
@@ -105,6 +112,10 @@ article {
     font-weight: bold;
 
     margin-bottom: 10px;
+}
+
+.article-title:hover {
+    text-decoration: underline;
 }
 
 .date {
