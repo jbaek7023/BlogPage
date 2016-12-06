@@ -7,7 +7,6 @@ import random
 import hashlib
 
 from string import letters
-
 from google.appengine.ext import db
 
 
@@ -30,6 +29,14 @@ def check_secure_val(h):
 	if h== make_secure_val(val):
 		return val
 
+def handler404(request):
+    response = render_to_response('404.html', {},
+                                  context_instance=RequestContext(request))
+    response.status_code = 404
+    return response
+
+
+
 #Validation checks for username, password, email
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
@@ -42,7 +49,6 @@ def valid_password(password):
 EMAIL_RE  = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
 def valid_email(email):
     return not email or EMAIL_RE.match(email)
-
 
 class Handler(webapp2.RequestHandler):
 	def initialize(self, *a, **kw):
@@ -104,7 +110,7 @@ class User(db.Model):
 
 	@classmethod
 	def by_name(cls, name):
-		#user = db.GqlQuery("select * from User where name = '%s' limit 1"%(name))
+		#user = db.GqlQuery("select * from User where name = '%s' limit 1"%(name)) query doesn't work
 	 	user = User.all().filter('name =', name).get()
 	 	return user
 
@@ -240,16 +246,59 @@ class MainPage(Handler):
 	def get(self):
 		#show up to 10 recent articles 
 		articles = db.GqlQuery("select * from Article order by date desc limit 10")
-
-		#user can see edit/post only if creater and user are equal
-
 		#find user from cookie... 
 		uid = self.read_secure_cookie("user_id")
-		# user = uid and User.by_id(int(uid))
 		self.render("main.html", articles = articles, uid=uid, user = self.user)
 
 	def post(self):
 		self.redirect("/blog/newpost")
+
+class Like(Handler):
+	def get(self, post_id):    
+		article = Article.by_id(post_id)
+
+		uid = self.read_secure_cookie('user_id')
+		
+		if uid in article.who_liked:
+			self.error(404)
+			return
+		else:
+			#add uid to who_liked array
+			article.who_liked.append(uid)
+			article.likes = article.likes+1
+			article.put()
+			self.redirect('/blog/liked')
+		
+		#I guess I need ajax request. the code below redirect to /blog and doesn't change the number of like. If I refresh the /blog page then, it increase the number by 1. 
+		#my solution was to create another confirmation page 
+		#self.redirect('/blog')
+class Unlike(Handler):
+	def get(self, post_id):		
+		article = Article.by_id(post_id)
+		uid = self.read_secure_cookie('user_id')
+		
+		if uid in article.who_liked:
+			#delete uid from who_liked array
+			article.who_liked.remove(uid)
+			article.likes -= 1
+			article.put()
+			self.redirect('/blog/disliked')	
+		else:
+			self.error(404)
+			return
+		
+class Liked(Handler):
+	def get(self):
+		self.render('liked.html')
+
+	def post(self):
+		self.redirect('/blog')
+
+class Disliked(Handler):
+	def get(self):
+		self.render('disliked.html')
+	def post(self):
+		self.redirect('/blog')
 
 class NewPost(Handler):
 	"""New Post Handler"""
@@ -293,7 +342,6 @@ class NewPost(Handler):
 
 class MadePost(Handler):
 	"""Post Confirmation"""
-	#article id undefined...
 	def get(self, post_id):
 		article = Article.by_id(post_id)
 		if not article:
@@ -314,7 +362,6 @@ class EditPost(Handler):
 		if not article:
 			self.error(404)
 			return
-		
 
 		#user can edit/post only if creater and user are equal (security). prevent anonymous from accessing by url:/blog/98792739/edit
 		uid = self.read_secure_cookie('user_id')
@@ -325,7 +372,7 @@ class EditPost(Handler):
 				title=article.title, 
 				)
 		else:
-			#throw error
+			#throw error 
 			self.error(404)
 
 	def post(self, post_id):
@@ -337,6 +384,7 @@ class EditPost(Handler):
 			article = Article.by_id(post_id)
 			article.title = subject
 			article.text = content
+
 			#update db
 			article.put()
 			self.redirect('/blog/%s' % str(article.key().id()))
@@ -361,17 +409,52 @@ class DeletePost(Handler):
 			article=article)
 
 	def post(self, post_id):
-		article = Article.by_id(post_id)
-		perma_link = article.key().id()
-		article.delete()
-		self.redirect("/blog/%s/delete_confirmation"%(perma_link))	
-		
+		if 'back_2_main' in self.request.POST:
+			self.redirect('/blog')
+		elif 'delete_post' in self.request.POST:
+			article = Article.by_id(post_id)
+			perma_link = article.key().id()
+			article.delete()
+			self.redirect("/blog/%s/delete_confirmation"%(perma_link))	
+
 class DeletePostConfirmation(Handler):
 	def get(self, post_id):
 		self.render(
 			"delete_confirmation.html")
 	def post(self, post_id):
 		self.redirect('/blog')
+
+class Comment(db.Model):
+	comment = db.StringProperty(required=True)
+	p_id = db.StringProperty(required=True)
+
+	@classmethod
+	def by_id(self, p_id):
+		key = db.Key.from_path('Comment', int(post_id))
+		comment = db.get(key)
+		return comment
+class NewComment(Handler):
+	def get(self, post_id):
+		#get post
+		article = Article.by_id(post_id)
+		if not article:
+			self.error(404)
+			return
+
+		#render post
+		self.render("new_comment.html", title=article.title)
+
+	def get(self, post_id):
+		pass
+
+class EditComment(Handler):
+	def get(self):
+		pass
+
+class DeleteComment(Handler):
+	def get(self):
+		pass
+		
 
 
 class Admin(Handler):
@@ -408,6 +491,18 @@ app = webapp2.WSGIApplication([(
 	'/blog/welcome',
 	Welcome
 ), (
+	'/blog/(\d+)/like',
+	Like
+), (
+	'/blog/liked',
+	Liked
+), (
+	'/blog/disliked',
+	Disliked
+), (
+	'/blog/(\d+)/unlike',
+	Unlike
+), (
 	'/blog/login',
 	Login
 ), (
@@ -416,5 +511,14 @@ app = webapp2.WSGIApplication([(
 ), (
 	'/admin',
 	Admin
+), (
+	'/blog/(\d+)/new_comment',
+	NewComment
+), (
+	'/blog/(\d+)/edit_comment',
+	EditComment
+), (
+	'/blog/(\d+)/delete_comment',
+	DeleteComment
 )], debug=True)
 

@@ -11,12 +11,15 @@
 	{%for article in articles%}
 	<article>
 		<p class="article-title">
-			<a href="/blog/{{article.key().id()}}">{{article.title}}</a> 
+			<a href="/blog/{{article.key().id()}}">{{article.title}}</a>	
 			<div class="like-style">{{article.likes}} like</div>
-			<!--if who published and user.id same, display Edit and Delete -->
-
 			<div class="ed">
-				<a href="/blog/{{article.key().id()}}/like">Like</a>
+				{%if uid in article.who_liked%}
+					<a href="/blog/{{article.key().id()}}/unlike">Unlike</a>
+				{%else%}
+					<a href="/blog/{{article.key().id()}}/like">Like</a>
+				{%endif%}
+				
 				{%if article.created_by == uid%}
 				 | <a href="/blog/{{article.key().id()}}/edit">Edit</a> | <a href="/blog/{{article.key().id()}}/delete">Delete</a>
 				{%endif%}
@@ -25,6 +28,7 @@
 		</p>
 		<p class="date">{{article.date.strftime("%b %d, %Y")}}</p>
 		<p class="article-content">{{article.text}}</p>
+		<p><a href="/blog/{{article.key().id()}}/new_comment">new comment</a></p>
 	</article>
 	{%endfor%}
 {%endblock%}
