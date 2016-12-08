@@ -1,41 +1,32 @@
-{%extends "base.html"%}
-
-{%block content%}
-	<div class="header-continue">
-		<form method="post">
-			<input type="submit" value="New Post">	
-		</form>		
+{%extends "base.html"%} {%block content%}
+<div class="header-continue">
+	<form method="post">
+		<input type="submit" value="New Post">
+	</form>
+</div>
+ {%for article in articles%} <article>
+<div class="article-title">
+	<a class="article-name" href="/blog/{{article.key().id()}}">{{article.title}}</a>
+	<div class="like-style">
+		 {{article.likes}} like
 	</div>
-
-	
-	{%for article in articles%}
-	<article>
-		<div class="article-title">
-				<a class="article-name" href="/blog/{{article.key().id()}}">{{article.title}}</a>
-			<div class="like-style"> {{article.likes}} like</div>
-			<p class="date">{{article.date.strftime("%I:%M%p %b %d, %Y")}}</p>
-		
-		</div>
-		
-
-		<div class="ed">
-			{%if uid in article.who_liked%}
-				<a href="/blog/{{article.key().id()}}/unlike">Unlike</a>
-			{%else%}
-				<a href="/blog/{{article.key().id()}}/like">Like</a>
-			{%endif%}
-			
-			{%if article.created_by == uid%}
-			 | <a href="/blog/{{article.key().id()}}/edit">Edit</a> | <a href="/blog/{{article.key().id()}}/delete">Delete</a>
-			{%endif%}
-			
-		</div>
-		
-		<p class="article-content">{{article.text}}</p>
-		<!-- Comment Section -->
-		<div class="comment-container-main">
-			<a href="/blog/{{article.key().id()}}">{{article.comments.count()}} comment</a> | <a href="/blog/{{article.key().id()}}/new_comment">new comment</a>
-		</div>
-	</article>
+	<p class="date">
+		{{article.date.strftime("%I:%M%p %b %d, %Y")}}
+	</p>
+</div>
+<div class="ed">
+	 {%if uid in article.who_liked%} <a href="/blog/{{article.key().id()}}/unlike">Unlike</a>
+	{%else%} <a href="/blog/{{article.key().id()}}/like">Like</a>
+	{%endif%} {%if article.created_by == uid%} | <a href="/blog/{{article.key().id()}}/edit">Edit</a> | <a href="/blog/{{article.key().id()}}/delete">Delete</a>
+	{%endif%}
+</div>
+<p class="article-content">
+	{{article.text}}
+</p>
+<!-- Comment Section -->
+<div class="comment-container-main">
+	<a href="/blog/{{article.key().id()}}">{{article.comments.count()}} comment</a> | <a href="/blog/{{article.key().id()}}/new_comment">new comment</a>
+</div>
+</article>
 	{%endfor%}
 {%endblock%}

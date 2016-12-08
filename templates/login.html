@@ -1,35 +1,37 @@
-{%extends "base.html"%}
-{%block content%}
-    <h2>Login</h2>
-    <form method="post">
-      <table>
-        <tr>
-          <td class="label">
-            Username
-          </td>
-          <td>
-            <input type="text" name="username" value="{{username}}">
-          </td>
-          <td class="error">
-            {{error}}
-          </td>
-        </tr>
-
-        <tr>
-          <td class="label">
-            Password
-          </td>
-          <td>
-            <input type="password" name="password" value="">
-          </td>
-          <td>
-            
-          </td>
-        </tr>
-      </table>
-      <div class="select-one">
-        <input type="submit" value="Login" name="login">
-        <input type="submit" value="Sign Up" name="signup">
-      </div>
-    </form>
+{%extends "base.html"%} {%block content%}
+<h2>Login</h2>
+<form method="post">
+  <table>
+  <tr>
+    <td class="label">
+       Username
+    </td>
+    <td>
+      <input type="text" name="username" value="{{username}}">
+    </td>
+    <td>
+       
+    </td>
+  </tr>
+  <tr>
+    <td class="label">
+       Password
+    </td>
+    <td>
+      <input type="password" name="password" value="">
+    </td>
+    <td>
+    </td>
+  </tr>
+  <tr>
+    <td class="error" colspan="2">
+      {{self.error}}
+    </td>
+  </tr>
+  </table>
+  <div class="select-one">
+    <input type="submit" value="Login" name="login">
+    <input type="submit" value="Sign Up" name="signup">
+  </div>
+</form>
 {%endblock%}

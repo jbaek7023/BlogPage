@@ -1,15 +1,14 @@
-{%extends "base.html"%}
-
-{%block content%}
-    <h1>
-        Edit Comment
-    </h1>
-    <form method="post">
-        <label>
-            <p>Are you sure you want to delete '{{title}}' comment?</p>
-            <textarea name="comment" readonly>{{comment}}</textarea>
-            <input type="submit" name="delete" value="Delete">
-            <input type="submit" name="back" value="Back to Blog">
-        </label>    
-    </form>
+{%extends "base.html"%} {%block content%}
+<h1>
+Edit Comment </h1>
+<form method="post">
+    <label>
+    <p>
+        Are you sure you want to delete '{{title}}' comment?
+    </p>
+    <textarea name="comment" readonly>{{comment}}</textarea>
+    <input type="submit" name="delete" value="Delete">
+    <input type="submit" name="back" value="Back to Blog">
+    </label>
+</form>
 {%endblock%}

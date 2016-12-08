@@ -1,14 +1,14 @@
-{%extends "base.html"%}
-
-{%block content%}
-    <h1>
-        New Comment
-    </h1>
-    <form method="post">
-        <label><p>New comment on {{title}}</p>
-        <textarea name="comment"></textarea>
-        <input type="submit" value="Main" name="main">
-        <input type="submit" value="Submit" name="sub">
-        </label>    
-    </form>
+{%extends "base.html"%} {%block content%}
+<h1>
+New Comment </h1>
+<form method="post">
+    <label>
+    <p>
+        New comment on {{title}}
+    </p>
+    <textarea name="comment"></textarea>
+    <input type="submit" value="Main" name="main">
+    <input type="submit" value="Submit" name="sub">
+    </label>
+</form>
 {%endblock%}

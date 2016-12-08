@@ -1,33 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Jaemin's Blog</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale:1.0">
-    <link rel="stylesheet" href="/static/main.css">
+<title>Jaemin's Blog</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale:1.0">
+<link rel="stylesheet" href="/static/main.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            {%if user%}
-                <div class="user_auth">
-                    <p class="user_auth_p">
-                        Hello, {{user.name}}  |  <a href="/blog/logout">logout</a>
-                    </p>
-                </div>
-            {%else%}
-                <div class="user_auth">
-                    <a href="/blog/login">Login</a> | 
-                    <a href="/blog/signup">SignUp</a>            
-                </div>
-            {%endif%}
-            <h1 class="blog_header">
-                <a href="/blog">Hello Blog</a>
-            </h1>
-            
-        </header>  
-        {%block content%}
-        {%endblock%} 
+<div class="container">
+    <header>
+    {%if user%}
+    <div class="user_auth">
+        <p class="user_auth_p">
+             Hello, {{user.name}} | <a href="/blog/logout">logout</a>
+        </p>
     </div>
+     {%else%}
+    <div class="user_auth">
+        <a href="/blog/login">Login</a> | <a href="/blog/signup">SignUp</a>
+    </div>
+     {%endif%}
+    <h1 class="blog_header">
+    <a href="/blog">Hello Blog</a>
+    </h1>
+    </header> {%block content%} {%endblock%}
+</div>
 </body>
 </html>

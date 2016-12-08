@@ -1,14 +1,17 @@
-{%extends "base.html"%}
-
-{%block content%}
-    <article>
-        <p class="article-title"><a href="/blog/{{article.key().id()}}">{{article.title}}</a></p>
-        <p class="date">{{article.date.strftime("%b %d, %Y")}}</p>
-        <p class="article-content">{{article.text}}</p>
-    </article>
-    
-    <form method="post"><!--Redirect to /blog-->
-        <input type="submit" name="back_2_main" value="Back to Main">
-        <input type="submit" name="delete_post" value="Delete Post">
-    </form>
+{%extends "base.html"%} {%block content%} <article>
+<p class="article-title">
+    <a href="/blog/{{article.key().id()}}">{{article.title}}</a>
+</p>
+<p class="date">
+    {{article.date.strftime("%b %d, %Y")}}
+</p>
+<p class="article-content">
+    {{article.text}}
+</p>
+</article>
+<form method="post">
+    <!--Redirect to /blog-->
+    <input type="submit" name="back_2_main" value="Back to Main">
+    <input type="submit" name="delete_post" value="Delete Post">
+</form>
 {%endblock%}

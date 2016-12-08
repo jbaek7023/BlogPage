@@ -1,24 +1,30 @@
-{%extends "base.html"%}
-
-{%block content%}
-	<div class="new-post">
-		<form method="post">
-			<div class="new-post-title">new post</div>	
-			<label>
-				<div class="new-post-font">Subject</div>
-				<input type="text" name="subject" placeholder="Enter Subject">
-			</label>
-			<br>
-			<br>
-			<label>
-				<div class="new-post-font">Content</div>
-				<textarea name="content" placeholder="Enter the Content"></textarea>
-			</label>
-			<div style="position:relative;">
-				<div class="error">{{error}}</div>
+{%extends "base.html"%} {%block content%}
+<div class="new-post">
+	<form method="post">
+		<div class="new-post-title">
+			new post
+		</div>
+		<label>
+		<div class="new-post-font">
+			Subject
+		</div>
+		<input type="text" name="subject" placeholder="Enter Subject">
+		</label>
+		<br>
+		<br>
+		<label>
+		<div class="new-post-font">
+			Content
+		</div>
+		<textarea name="content" placeholder="Enter the Content"></textarea>
+		</label>
+		<div style="position:relative;">
+			<div class="error">
+				{{error}}
 			</div>
-			<input type="submit" value="Submit" name="sub">
-			<input type="submit" value="Back to Main" name="main">	
-		</form>
-	</div>
+		</div>
+		<input type="submit" value="Submit" name="sub">
+		<input type="submit" value="Back to Main" name="main">
+	</form>
+</div>
 {%endblock%}
