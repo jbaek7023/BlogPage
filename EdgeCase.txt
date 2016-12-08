@@ -1,0 +1,28 @@
+1. User
+	* Logged-in user can't see sign up  - check
+	* add sign-in redirection page - check
+
+	
+
+2. Post 	newpost, edit, delete self.user ->check 
+	* logged-in user can post 
+		edit/delete their own post -> check
+		can't edit/delete others post
+	* logged-out usr can't post -> redirect to log-in page 
+	
+3. Like / dislike -> check
+	* logged-in user can like only if they didn't like it before
+	if they liked before, show dislike -> check
+		
+	* logged-out user can't like/dislike -> redirect to log-in page
+
+4. Comment -> check new, edit , delete 
+	* logged-in user can comment 
+			edit/delete their own comment 
+			can't edit/delete others comment
+	*logged-out usr can't post/edit/delete comment
+			
+
+Sorry, this page isn't available
+
+The link you followed may be broken, or the page may have been removed.

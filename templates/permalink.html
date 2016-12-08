@@ -7,9 +7,8 @@
         <p class="article-content">{{article.text}}</p>
             
     </article>
-        <p><a href="/blog/{{article.key().id()}}/new_comment">new comment</a></p>
-        {%for comment in article.comments%}
-        <div class="comment_container_permalink">
+        {%for comment in article.comments|sort(attribute='created_in', reverse=False)%}
+        <div class="comment-container-permalink">
             <div>
                 {{comment.made_by}} :
             </div>
@@ -27,7 +26,8 @@
         </div>
             
         {%endfor%}
-
+        <p><a href="/blog/{{article.key().id()}}/new_comment">new comment</a></p>
+        
     <form method="post"><!--Redirect to /blog-->
         <input type="submit" value="Go to Main">
     </form>

@@ -103,7 +103,6 @@ class User(db.Model):
 
 	@classmethod
 	def by_name(cls, name):
-		#user = db.GqlQuery("select * from User where name = '%s' limit 1"%(name))
 	 	user = User.all().filter('name =', name).get()
 	 	return user
 
@@ -193,25 +192,23 @@ class Login(Handler):
 
 		#password to hash 
 		#if it's username password_hash valid
-		u = User.login(username, password)
-		if u:
-			#set coockie
-			self.login(u)
-			self.redirect('/blog')
-			#self.redirect('/blog/login')
-		else:
-			error = 'Invalid Login. Check your ID and Password'
-			self.render('login.html', error = error)
 
-		#check to see if username is in the database <- already did it by checking coockie
-
-		#then login 
+		if 'signup' in self.request.POST:
+			self.redirect('/blog/signup')
+		elif 'login' in self.request.POST:
+			u = User.login(username, password)
+			if u:
+				#set coockie
+				self.login(u)
+				self.redirect('/blog')
+			else:
+				error = 'Invalid Login. Check your ID and Password'
+				self.render('login.html', error = error)
+	 
 
 class Logout(Handler):
 	def get(self):
 		self.logout()
-		# uid = self.read_secure_cookie('user_id')
-		# user = uid and User.by_id(int(uid))
 		self.redirect('/blog')
 
 class Article(db.Model):
@@ -251,51 +248,49 @@ class MainPage(Handler):
 		self.redirect("/blog/newpost")
 
 class Like(Handler):
-	def get(self, post_id):    
-		article = Article.by_id(post_id)
+	def get(self, post_id):   
+		if self.user: 
+			article = Article.by_id(post_id)
 
-		uid = self.read_secure_cookie('user_id')
+			uid = self.read_secure_cookie('user_id')
+			if uid in article.who_liked:
+				self.redirect('/blog/broken')
+				return
+			else:
+				#add uid to who_liked array
+				article.who_liked.append(uid)
+				article.likes = article.likes+1
+				article.put()
+				self.render('liked.html', user = self.user)
+		else: 
+			self.redirect('/blog/broken')
 		
-		if uid in article.who_liked:
-			self.error(404)
-			return
-		else:
-			#add uid to who_liked array
-			article.who_liked.append(uid)
-			article.likes = article.likes+1
-			article.put()
-			self.redirect('/blog/liked')
-		
+	def post(self, post_id):
+		self.redirect('/blog')			
 		#I guess I need ajax request. the code below redirect to /blog and doesn't change the number of like. If I refresh the /blog page then, it increase the number by 1. 
 		#my solution was to create another confirmation page 
 		#self.redirect('/blog')
 class Unlike(Handler):
-	def get(self, post_id):		
-		article = Article.by_id(post_id)
-		uid = self.read_secure_cookie('user_id')
+	def get(self, post_id):	
+		if self.user:	
+			article = Article.by_id(post_id)
+			uid = self.read_secure_cookie('user_id')
+			
+			if uid in article.who_liked:
+				#delete uid from who_liked array
+				article.who_liked.remove(uid)
+				article.likes -= 1
+				article.put()
+				self.render('disliked.html', user = self.user)
+			else:
+				self.redirect('/blog/broken')
+				return
+		else: 
+			self.redirect('/blog/broken')
+	def post(self, post_id):
+		self.redirect('/blog')			
+			
 		
-		if uid in article.who_liked:
-			#delete uid from who_liked array
-			article.who_liked.remove(uid)
-			article.likes -= 1
-			article.put()
-			self.redirect('/blog/disliked')	
-		else:
-			self.error(404)
-			return
-		
-class Liked(Handler):
-	def get(self):
-		self.render('liked.html')
-
-	def post(self):
-		self.redirect('/blog')
-
-class Disliked(Handler):
-	def get(self):
-		self.render('disliked.html')
-	def post(self):
-		self.redirect('/blog')
 
 class NewPost(Handler):
 	"""New Post Handler"""
@@ -308,33 +303,36 @@ class NewPost(Handler):
 			self.render("login.html", error=error)
 
 	def post(self):
-		subject = self.request.get('subject')
-		content = self.request.get('content')
-		
-		#created by someone. someone should be unique
-		uid = self.read_secure_cookie('user_id')
-		#if subject and content filled
-		if subject and content:
-			article = Article(
-				title=subject, 
-				text=content,
-				likes=0,
-				who_liked=[],
-				created_by=uid)
-			#put the article to db
-			article.put()
-			self.redirect('/blog/%s' % str(article.key().id()))
-		else:
-			#either subject or content missing
-			error = "Subject or Content is missing"
-			self.render(
-				"new_post.html",
-				title=subject,
-				text=content,
-				error=error,
-				likes=0,
-				who_liked=[],
-				created_by=uid)
+		if 'main' in self.request.POST:
+			self.redirect('/blog')
+		elif 'sub' in self.request.POST:
+			subject = self.request.get('subject')
+			content = self.request.get('content')
+			
+			#created by someone. someone should be unique
+			uid = self.read_secure_cookie('user_id')
+			#if subject and content filled
+			if subject and content:
+				article = Article(
+					title=subject, 
+					text=content,
+					likes=0,
+					who_liked=[],
+					created_by=uid)
+				#put the article to db
+				article.put()
+				self.redirect('/blog/%s' % str(article.key().id()))
+			else:
+				#either subject or content missing
+				error = "Subject or Content is missing"
+				self.render(
+					"new_post.html",
+					title=subject,
+					text=content,
+					error=error,
+					likes=0,
+					who_liked=[],
+					created_by=uid)
 		
 
 class MadePost(Handler):
@@ -342,72 +340,84 @@ class MadePost(Handler):
 	def get(self, post_id):
 		article = Article.by_id(post_id)
 		if not article:
-			self.error(404)
+			self.redirect('/blog/broken')
 			return
-
-		# uid = self.read_secure_cookie('user_id')
-		# usr = User.by_id(uid)
 
 		self.render(
 			"permalink.html",
-			article=article, name = self.user.name)
+			article=article, name = self.user.name, user=self.user)
 
 	def post(self, post_id):
 		self.redirect('/blog')
 
 class EditPost(Handler):
 	def get(self, post_id):	
-		#get post
-		article = Article.by_id(post_id)
-		if not article:
-			self.error(404)
-			return
-
-		#user can edit/post only if creater and user are equal (security). prevent anonymous from accessing by url:/blog/98792739/edit
-		uid = self.read_secure_cookie('user_id')
-		if article.created_by == uid:
-			#send it to edit_post page. 
-			self.render("edit_post.html", 
-				text=article.text,
-				title=article.title, 
-				)
-		else:
-			#throw error 
-			self.error(404)
-
-	def post(self, post_id):
-		#get inputs
-		subject = self.request.get('subject')
-		content = self.request.get('content')
-
-		if subject and content:
+		if self.user:
+			#get post
 			article = Article.by_id(post_id)
-			article.title = subject
-			article.text = content
-
-			#update db
-			article.put()
-			self.redirect('/blog/%s' % str(article.key().id()))
+			if not article:
+				self.redirect('/blog/broken')
+				return
+			#prevent anonymous logged in user from accessing edit post by url:/blog/98792739/edit
+			uid = self.read_secure_cookie('user_id')
+			if article.created_by == uid:
+				#send it to edit_post page. 
+				self.render("edit_post.html", 
+					text=article.text,
+					title=article.title, 
+					user=self.user
+					)
+			else:
+				self.redirect('/blog/broken')
+				return
 		else:
-			#error check if either one is empty
-			error = "Subject or Content is missing"
-			self.render("edit_post.html", 
-			title= subject,
-			text=content,
-			error=error)
+			#user ever reach here because they can't see edit button
+			self.redirect('/blog/broken')
+			return
+		
+	def post(self, post_id):
+		if 'main' in self.request.POST:
+			self.redirect('/blog')
+		elif 'sub' in self.request.POST:
+			#get inputs
+			subject = self.request.get('subject')
+			content = self.request.get('content')
+
+			if subject and content:
+				article = Article.by_id(post_id)
+				article.title = subject
+				article.text = content
+				article.put()
+				self.redirect('/blog/%s' % str(article.key().id()))
+			else:
+				#error check if either one is empty
+				error = "Subject or Content is missing"
+				self.render("edit_post.html", 
+					title= subject,
+					text=content,
+					error=error)
 
 class DeletePost(Handler):
 	def get(self, post_id):
-		#same rander behavior with Madepost (permanent link)
-		article = Article.by_id(post_id)
-		if not article:
-			self.error(404)
+		if self.user:
+			article = Article.by_id(post_id)
+			if not article:
+				self.redirect('/blog/broken')
+				return
+			uid = self.read_secure_cookie('user_id')
+			if article.created_by == uid:
+				#send it to edit_post page. 
+				self.render(
+					"delete_post.html",
+					article=article,
+					user=self.user)
+			else:
+				self.redirect('/blog/broken')
+				return
+		else:
+			self.redirect('/blog/broken')
 			return
-
-		self.render(
-			"delete_post.html",
-			article=article)
-
+		
 	def post(self, post_id):
 		if 'back_2_main' in self.request.POST:
 			self.redirect('/blog')
@@ -432,49 +442,61 @@ class Comment(db.Model):
 	
 class NewComment(Handler):
 	def get(self, post_id):
-		#get post
-		article = Article.by_id(post_id)
-		if not article:
-			self.error(404)
-			return
-
-		#render post
-		self.render("new_comment.html", title=article.title)
+		if self.user: 	
+			#get post
+			article = Article.by_id(post_id)
+			if not article:
+				self.redirect('/blog/broken')
+				return
+			#render post
+			self.render("new_comment.html", title=article.title)
+		else: 
+			self.redirect('/blog/broken')
 
 	def post(self, post_id):
-		# key = db.Key.from_path('Article', int(post_id))
-		# article = db.get(key)
-		# #what if no post? error
+		if 'main' in self.request.POST:
+			self.redirect('/blog/%s'%str(post_id))
+		elif 'sub' in self.request.POST:
+			comment_text = self.request.get('comment')
+			comment_elem = Comment(comment=comment_text, post_id = post_id, made_by=self.user.name)
+			comment_elem.put()
 
-		comment_text = self.request.get('comment')
-		
-		comment_elem = Comment(comment=comment_text, post_id = post_id, made_by=self.user.name)
-		comment_elem.put()
-
-		self.redirect('/blog/%s'%str(post_id))
+			self.redirect('/blog/%s'%str(post_id))
 
 class EditComment(Handler):
 	def get(self, post_id, comment_id):
-		#get current comment!
-		article = Article.get_by_id(int(post_id))
-		comment = Comment.get_by_id(int(comment_id))
-
-		self.render("edit_comment.html", title=article.title, comment=comment.comment)
-
+		if self.user:
+			#get current comment!
+			article = Article.get_by_id(int(post_id))
+			comment = Comment.get_by_id(int(comment_id))
+			if comment.made_by == self.user.name:
+				self.render("edit_comment.html", title=article.title, comment=comment.comment, user=self.user)
+			else:
+				self.redirect('/blog/broken')
+		else: 
+			self.redirect('/blog/broken')
 	def post(self, post_id, comment_id):
-		comment_elem = Comment.get_by_id(int(comment_id))
-		comment_elem.comment = self.request.get('comment')
-		comment_elem.put()
-		self.redirect('/blog/%s'%str(post_id))
+		if 'main' in self.request.POST:
+			self.redirect('/blog/%s'%str(post_id))
+		elif 'sub' in self.request.POST:	
+			comment_elem = Comment.get_by_id(int(comment_id))
+			comment_elem.comment = self.request.get('comment')
+			comment_elem.put()
+			self.redirect('/blog/%s'%str(post_id))
 
 class DeleteComment(Handler):
 	def get(self, post_id, comment_id):
-		#get current comment!
-		article = Article.get_by_id(int(post_id))
-		comment = Comment.get_by_id(int(comment_id))
+		if self.user:
+			#get current comment!
+			article = Article.get_by_id(int(post_id))
+			comment = Comment.get_by_id(int(comment_id))
 
-		self.render("delete_comment.html", title=article.title, comment=comment.comment)
-
+			if comment.made_by == self.user.name:
+				self.render("delete_comment.html", title=article.title, comment=comment.comment, user=self.user)
+			else:
+				self.redirect('/blog/broken')
+		else: 
+			self.redirect('/blog/broken')
 	def post(self, post_id, comment_id):
 		if 'back' in self.request.POST:
 			self.redirect('/blog/%s'%str(post_id))
@@ -483,9 +505,8 @@ class DeleteComment(Handler):
 			comment_elem.delete()				
 			self.redirect('/blog/%s'%str(post_id))
 
-
-
 class Admin(Handler):
+	'''DELETE ALL COMMENTS AND ARTICLES '''
 	def get(self):
 		self.render("admin.html")
 
@@ -496,6 +517,11 @@ class Admin(Handler):
 		for row in Comment.all():
 			row.delete()
 		self.redirect('/blog')
+
+class Broken(Handler):
+	def get(self):
+		self.render("broken_link.html")
+
 app = webapp2.WSGIApplication([(
 	'/blog',
 	MainPage
@@ -524,12 +550,6 @@ app = webapp2.WSGIApplication([(
 	'/blog/(\d+)/like',
 	Like
 ), (
-	'/blog/liked',
-	Liked
-), (
-	'/blog/disliked',
-	Disliked
-), (
 	'/blog/(\d+)/unlike',
 	Unlike
 ), (
@@ -539,7 +559,7 @@ app = webapp2.WSGIApplication([(
 	'/blog/logout',
 	Logout
 ), (
-	'/admin',
+	'/admin_secret777',
 	Admin
 ), (
 	'/blog/(\d+)/new_comment',
@@ -550,5 +570,8 @@ app = webapp2.WSGIApplication([(
 ), (
 	'/blog/(\d+)/(\d+)/delete_comment',
 	DeleteComment
+), (
+	'/blog/broken',
+	Broken
 )], debug=True)
 

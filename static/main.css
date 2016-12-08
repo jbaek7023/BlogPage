@@ -1,5 +1,5 @@
 body {
-    font-family: Arial, san-serif;
+    font-family: Helvetica;
     font-size: 19px;
     color: #111111;
     width: 800px;
@@ -46,7 +46,6 @@ header {
     margin-bottom: 20px;
 
     border-radius: 5px;
-    border: 2px dotted #111111;
 }
 
 a {
@@ -54,7 +53,7 @@ a {
 }
 
 .header-continue {
-    margin-bottom: 60px;
+    margin-bottom: 90px;
 }
 
 input[type=text] {
@@ -98,27 +97,44 @@ textarea {
     width: 700px;
 }
 
+.like-style {
+    display: inline;
+    font-weight: normal;
+    font-size: 15px;
+}
+
+.article-name {
+    display: inline;
+    font-size: 24px;
+}
+
 article {
     position: relative;
+    margin-bottom: 60px;
 }
 
 .article-title {
-    padding-left: 10px;
-
+    display: block;
+    padding-left: 5px;
+    margin-left:5px;
     position: relative;
-    padding-bottom: 7px;
-    border-bottom: 3px solid #666;
-    font-size: 27px;
+    padding-bottom: 0px;
+    /*border-top: 1px solid #666;*/
+    border-bottom: 2px solid #222;
     font-weight: bold;
 
-    margin-bottom: 10px;
+    margin-bottom: 0px;
 }
 
-.article-title:hover {
+.article-name:hover {
     text-decoration: underline;
 }
 
 .date {
+    margin-top: 8px;
+    display: inline;
+    font-size: 14px;
+    font-weight: normal;
     position: absolute;
     right: 0px;
     top: 0px;
@@ -127,8 +143,11 @@ article {
 .article-content {
     padding-left: 10px;
 
-    margin-top:0px;
-    margin-bottom: 40px;
+    background-color: #e0e0e0;
+    padding-top:30px;
+    padding-bottom: 30px;
+    margin: 0px;
+    margin-top: 10px;
 }
 
 .new-post-title {
@@ -148,6 +167,7 @@ article {
     text-align: right;
     text-align: top;
     vertical-align: text-top;
+    font-weight: normal;
 }
 
 .blog_header {
@@ -161,8 +181,14 @@ article {
 .ed {
     font-size: 14px;
     padding-left: 10px;
+    margin-top: 10px;
 }
 
-.comment_container_permalink {
+.comment-container-permalink {
     margin-bottom: 15px;
+}
+
+.comment-container-main {
+    margin-top: 10px;
+    padding-left: 10px;
 }
