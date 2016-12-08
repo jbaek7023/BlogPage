@@ -26,9 +26,14 @@
 				
 			</div>
 		</p>
-		<p class="date">{{article.date.strftime("%b %d, %Y")}}</p>
+		<p class="date">{{article.date.strftime("%I:%M%p %b %d, %Y")}}</p>
 		<p class="article-content">{{article.text}}</p>
-		<p><a href="/blog/{{article.key().id()}}/new_comment">new comment</a></p>
+		<!-- Comment Section -->
+		<div class="comment_container_main">
+			<p><a href="/blog/{{article.key().id()}}/new_comment">new comment</a></p>
+		
+			<p><a href="/blog/{{article.key().id()}}">{{article.comments.count()}} comment</a></p>
+		</div>
 	</article>
 	{%endfor%}
 {%endblock%}

@@ -29,14 +29,6 @@ def check_secure_val(h):
 	if h== make_secure_val(val):
 		return val
 
-def handler404(request):
-    response = render_to_response('404.html', {},
-                                  context_instance=RequestContext(request))
-    response.status_code = 404
-    return response
-
-
-
 #Validation checks for username, password, email
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
@@ -55,6 +47,7 @@ class Handler(webapp2.RequestHandler):
 		webapp2.RequestHandler.initialize(self, *a, **kw)
 		uid = self.read_secure_cookie('user_id')
 		self.user=uid and User.by_id(int(uid))
+	
 	def write(self, *a, **kw):
 		self.response.out.write(*a, **kw)
 
@@ -110,7 +103,7 @@ class User(db.Model):
 
 	@classmethod
 	def by_name(cls, name):
-		#user = db.GqlQuery("select * from User where name = '%s' limit 1"%(name)) query doesn't work
+		#user = db.GqlQuery("select * from User where name = '%s' limit 1"%(name))
 	 	user = User.all().filter('name =', name).get()
 	 	return user
 
@@ -241,6 +234,10 @@ class Article(db.Model):
 		article = db.get(key)
 		return article
 
+	@property
+	def comments(self):
+		return Comment.all().filter( "post_id = ", str(self.key().id()))
+		
 class MainPage(Handler):
 	"""Main Handler"""
 	def get(self):
@@ -348,9 +345,12 @@ class MadePost(Handler):
 			self.error(404)
 			return
 
+		# uid = self.read_secure_cookie('user_id')
+		# usr = User.by_id(uid)
+
 		self.render(
 			"permalink.html",
-			article=article)
+			article=article, name = self.user.name)
 
 	def post(self, post_id):
 		self.redirect('/blog')
@@ -426,13 +426,10 @@ class DeletePostConfirmation(Handler):
 
 class Comment(db.Model):
 	comment = db.StringProperty(required=True)
-	p_id = db.StringProperty(required=True)
-
-	@classmethod
-	def by_id(self, p_id):
-		key = db.Key.from_path('Comment', int(post_id))
-		comment = db.get(key)
-		return comment
+	post_id = db.StringProperty(required=True)
+	made_by = db.StringProperty(required=True)
+	created_in = db.DateTimeProperty(auto_now=True)
+	
 class NewComment(Handler):
 	def get(self, post_id):
 		#get post
@@ -444,17 +441,48 @@ class NewComment(Handler):
 		#render post
 		self.render("new_comment.html", title=article.title)
 
-	def get(self, post_id):
-		pass
+	def post(self, post_id):
+		# key = db.Key.from_path('Article', int(post_id))
+		# article = db.get(key)
+		# #what if no post? error
+
+		comment_text = self.request.get('comment')
+		
+		comment_elem = Comment(comment=comment_text, post_id = post_id, made_by=self.user.name)
+		comment_elem.put()
+
+		self.redirect('/blog/%s'%str(post_id))
 
 class EditComment(Handler):
-	def get(self):
-		pass
+	def get(self, post_id, comment_id):
+		#get current comment!
+		article = Article.get_by_id(int(post_id))
+		comment = Comment.get_by_id(int(comment_id))
+
+		self.render("edit_comment.html", title=article.title, comment=comment.comment)
+
+	def post(self, post_id, comment_id):
+		comment_elem = Comment.get_by_id(int(comment_id))
+		comment_elem.comment = self.request.get('comment')
+		comment_elem.put()
+		self.redirect('/blog/%s'%str(post_id))
 
 class DeleteComment(Handler):
-	def get(self):
-		pass
-		
+	def get(self, post_id, comment_id):
+		#get current comment!
+		article = Article.get_by_id(int(post_id))
+		comment = Comment.get_by_id(int(comment_id))
+
+		self.render("delete_comment.html", title=article.title, comment=comment.comment)
+
+	def post(self, post_id, comment_id):
+		if 'back' in self.request.POST:
+			self.redirect('/blog/%s'%str(post_id))
+		elif 'delete' in self.request.POST:
+			comment_elem = Comment.get_by_id(int(comment_id))
+			comment_elem.delete()				
+			self.redirect('/blog/%s'%str(post_id))
+
 
 
 class Admin(Handler):
@@ -465,6 +493,8 @@ class Admin(Handler):
 		for row in Article.all():
 			row.delete()
 		
+		for row in Comment.all():
+			row.delete()
 		self.redirect('/blog')
 app = webapp2.WSGIApplication([(
 	'/blog',
@@ -515,10 +545,10 @@ app = webapp2.WSGIApplication([(
 	'/blog/(\d+)/new_comment',
 	NewComment
 ), (
-	'/blog/(\d+)/edit_comment',
+	'/blog/(\d+)/(\d+)/edit_comment',
 	EditComment
 ), (
-	'/blog/(\d+)/delete_comment',
+	'/blog/(\d+)/(\d+)/delete_comment',
 	DeleteComment
 )], debug=True)
 

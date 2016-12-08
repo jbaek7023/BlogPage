@@ -162,3 +162,7 @@ article {
     font-size: 14px;
     padding-left: 10px;
 }
+
+.comment_container_permalink {
+    margin-bottom: 15px;
+}

@@ -4,16 +4,30 @@
     <article>
         <p class="article-title"><a href="/blog/{{article.key().id()}}">{{article.title}}</a></p>
         <p class="date">{{article.date.strftime("%b %d, %Y")}}</p>
-
-        <p>
-            {%for uid in article.who_liked%}
-                {{uid}}
-            {%endfor%}
-        </p>
         <p class="article-content">{{article.text}}</p>
             
     </article>
-    
+        <p><a href="/blog/{{article.key().id()}}/new_comment">new comment</a></p>
+        {%for comment in article.comments%}
+        <div class="comment_container_permalink">
+            <div>
+                {{comment.made_by}} :
+            </div>
+            <div class="comment_date">
+                {{comment.created_in.strftime("%I:%M%p %b %d, %Y")}}</div>
+            <div> 
+                {%if name == comment.made_by %}
+                    <a href="/blog/{{article.key().id()}}/{{comment.key().id()}}/edit_comment">Edit</a>/<a href="/blog/{{article.key().id()}}/{{comment.key().id()}}/delete_comment">Delete</a>
+                {%endif%}
+            </div>
+
+            <div>
+                {{comment.comment}}            
+            </div>
+        </div>
+            
+        {%endfor%}
+
     <form method="post"><!--Redirect to /blog-->
         <input type="submit" value="Go to Main">
     </form>
