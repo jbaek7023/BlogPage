@@ -376,8 +376,10 @@ class MadePost(Handler):
             self.redirect('/blog/broken')
     
     def post(self, post_id):
-        self.redirect('/blog')
-
+        if self.user:
+            self.redirect('/blog')
+        else:
+            self.redirect('/blog/broken')
 
 class EditPost(Handler):
     def get(self, post_id):
@@ -408,27 +410,38 @@ class EditPost(Handler):
             return
 
     def post(self, post_id):
-        if 'main' in self.request.POST:
-            self.redirect('/blog')
-        elif 'sub' in self.request.POST:
-            # get inputs
-            subject = self.request.get('subject')
-            content = self.request.get('content')
-
-        if subject and content:
-            article = Article.by_id(post_id)
-            article.title = subject
-            article.text = content
-            article.put()
-            self.redirect('/blog/%s' % str(article.key().id()))
+        if self.user:
+            if 'main' in self.request.POST:
+                self.redirect('/blog')
+            elif 'sub' in self.request.POST:
+                # get inputs
+                subject = self.request.get('subject')
+                content = self.request.get('content')
+                article = Article.by_id(post_id)
+                uid = self.read_secure_cookie('user_id')
+    
+                if article.created_by == uid:
+                    
+                    if subject and content:
+                        article.title = subject
+                        article.text = content
+                        article.put()
+                        self.redirect('/blog/%s' % str(article.key().id()))
+                    else:
+                        # error check if either one is empty
+                        error = "Subject or Content is missing"
+                        self.render(
+                            "edit_post.html",
+                            title=subject,
+                            text=content,
+                            error=error)
+                else:
+                    self.redirect('/blog/broken')
         else:
-            # error check if either one is empty
-            error = "Subject or Content is missing"
-            self.render(
-                "edit_post.html",
-                title=subject,
-                text=content,
-                error=error)
+            self.redirect('/blog/broken')
+            return
+
+        
 
 
 class DeletePost(Handler):
@@ -456,22 +469,48 @@ class DeletePost(Handler):
             return
 
     def post(self, post_id):
-        if 'back_2_main' in self.request.POST:
-            self.redirect('/blog')
-        elif 'delete_post' in self.request.POST:
-            article = Article.by_id(post_id)
-            perma_link = article.key().id()
-            article.delete()
-            self.redirect("/blog/%s/delete_confirmation" % (perma_link))
+        if self.user:   
+            if 'back_2_main' in self.request.POST:
+                self.redirect('/blog')
+            elif 'delete_post' in self.request.POST:
+                article = Article.by_id(post_id)
+                uid = self.read_secure_cookie('user_id')
+
+                if article.created_by == uid:
+                    perma_link = article.key().id()
+                    article.delete()
+                    self.redirect("/blog/%s/delete_confirmation" % (perma_link))
+                else:
+                    self.redirect('/blog/broken')
+                    return
+        else:
+            self.redirect('/blog/broken')
+            return
 
 class DeletePostConfirmation(Handler):
     def get(self, post_id):
-        self.render(
-            "delete_confirmation.html")
+        if self.user:
+            article = Article.by_id(post_id)
+            uid = self.read_secure_cookie('user_id')
 
+            if article.created_by == uid:
+                self.render(
+                    "delete_confirmation.html")
+            else:
+                self.redirect('/blog/broken')
+        else:
+            self.redirect('/blog/broken')
     def post(self, post_id):
-        self.redirect('/blog')
+        if self.user:
+            article = Article.by_id(post_id)
+            uid = self.read_secure_cookie('user_id')
 
+            if article.created_by == uid:
+                self.render('/blog')
+            else:
+                self.redirect('/blog/broken')
+        else:
+            self.redirect('/blog/broken')
 
 class Comment(db.Model):
     comment = db.StringProperty(required=True)
@@ -493,17 +532,20 @@ class NewComment(Handler):
             self.redirect('/blog/broken')
 
     def post(self, post_id):
-        if 'main' in self.request.POST:
-            self.redirect('/blog/%s' % str(post_id))
-        elif 'sub' in self.request.POST:
-            comment_text = self.request.get('comment')
-            comment_elem = Comment(
-                comment=comment_text,
-                post_id=post_id,
-                made_by=self.user.name)
-            comment_elem.put()
+        if self.user:
+            if 'main' in self.request.POST:
+                self.redirect('/blog/%s' % str(post_id))
+            elif 'sub' in self.request.POST:
+                comment_text = self.request.get('comment')
+                comment_elem = Comment(
+                    comment=comment_text,
+                    post_id=post_id,
+                    made_by=self.user.name)
+                comment_elem.put()
 
-            self.redirect('/blog/%s' % str(post_id))
+                self.redirect('/blog/%s' % str(post_id))
+        else:
+            self.redirect('/blog/broken')
 
 class EditComment(Handler):
     def get(self, post_id, comment_id):
@@ -523,14 +565,20 @@ class EditComment(Handler):
             self.redirect('/blog/broken')
 
     def post(self, post_id, comment_id):
-        if 'main' in self.request.POST:
-            self.redirect('/blog/%s' % str(post_id))
-        elif 'sub' in self.request.POST:
+        if self.user:
+            article = Article.get_by_id(int(post_id))
             comment_elem = Comment.get_by_id(int(comment_id))
-            comment_elem.comment = self.request.get('comment')
-            comment_elem.put()
-            self.redirect('/blog/%s' % str(post_id))
-
+            if comment_elem.made_by == self.user.name:
+                if 'main' in self.request.POST:
+                    self.redirect('/blog/%s' % str(post_id))
+                elif 'sub' in self.request.POST:
+                    comment_elem.comment = self.request.get('comment')
+                    comment_elem.put()
+                    self.redirect('/blog/%s' % str(post_id))
+            else:
+                self.redirect('/blog/broken')
+        else:
+            self.redirect('/blog/broken')
 class DeleteComment(Handler):
     def get(self, post_id, comment_id):
         if self.user:
@@ -550,13 +598,21 @@ class DeleteComment(Handler):
             self.redirect('/blog/broken')
 
     def post(self, post_id, comment_id):
-        if 'back' in self.request.POST:
-            self.redirect('/blog/%s' % str(post_id))
-        elif 'delete' in self.request.POST:
+        if self.user:
+            article = Article.get_by_id(int(post_id))
             comment_elem = Comment.get_by_id(int(comment_id))
-            comment_elem.delete()
-            self.redirect('/blog/%s' % str(post_id))
-
+            
+            if comment_elem.made_by == self.user.name:
+                if 'back' in self.request.POST:
+                    self.redirect('/blog/%s' % str(post_id))
+                elif 'delete' in self.request.POST:
+                    comment_elem.delete()
+                    self.redirect('/blog/%s' % str(post_id))
+            else:
+                self.redirect('/blog/broken')
+        else:
+            self.redirect('/blog/broken')
+        
 
 class Admin(Handler):
     '''DELETE ALL COMMENTS AND ARTICLES '''
