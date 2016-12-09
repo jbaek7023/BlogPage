@@ -1,34 +1,18 @@
 {%extends "base.html"%} {%block content%}
 <h2>Login</h2>
 <form method="post">
-  <table>
-  <tr>
-    <td class="label">
-       Username
-    </td>
-    <td>
-      <input type="text" name="username" value="{{username}}">
-    </td>
-    <td>
-       
-    </td>
-  </tr>
-  <tr>
-    <td class="label">
-       Password
-    </td>
-    <td>
-      <input type="password" name="password" value="">
-    </td>
-    <td>
-    </td>
-  </tr>
-  <tr>
-    <td class="error" colspan="2">
-      {{self.error}}
-    </td>
-  </tr>
-  </table>
+<div class="form-style">
+  <label class="lab">Username</label>
+  <input type="text" name="username" value="{{username}}">
+
+  <label class="lab">Password</label>
+  <input type="password" name="password" value="">
+  
+  <div class="error">
+    {{error}}
+  </div>
+  
+</div>
   <div class="select-one">
     <input type="submit" value="Login" name="login">
     <input type="submit" value="Sign Up" name="signup">

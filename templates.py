@@ -150,7 +150,6 @@ class SignUp(Handler):
             username=self.username,
             email=self.email)
 
-
         if not valid_username(self.username):
             params['error_username'] = "That's not a valid username."
             have_error = True
@@ -171,15 +170,15 @@ class SignUp(Handler):
             self.render('signup-form.html', **params)
         else:
             u = User.by_name(self.username)
-        if u:
-            error = 'That user name already exists'
-            self.render('signup-form.html', error_username=error)
-        else:
-            u = User.register(self.username, self.password, self.email)
-            u.put()
-            
-            self.login(u)
-            self.redirect('/blog/welcome')
+            if u:
+                error = 'That user name already exists'
+                self.render('signup-form.html', error_username=error)
+            else:
+                u = User.register(self.username, self.password, self.email)
+                u.put()
+                
+                self.login(u)
+                self.redirect('/blog/welcome')
 
 class Welcome(Handler):
     def get(self):
@@ -203,7 +202,6 @@ class Login(Handler):
 
 		#password to hash 
 		#if it's username password_hash valid
-
 		if 'signup' in self.request.POST:
 			self.redirect('/blog/signup')
 		elif 'login' in self.request.POST:
@@ -278,7 +276,11 @@ class Like(Handler):
 
 
     def post(self, post_id):
-        self.redirect('/blog')
+        if self.user:
+            self.redirect('/blog')
+        
+
+
     # I guess I need ajax request. the code below redirect to /blog
     # and doesn't change the number of like.
     # If I refresh the /blog page then, it increase the number by 1.
@@ -305,7 +307,8 @@ class Unlike(Handler):
             self.redirect('/blog/broken')
 
     def post(self, post_id):
-        self.redirect('/blog')
+        if self.user:
+            self.redirect('/blog')
 
 			
 		
@@ -321,52 +324,57 @@ class NewPost(Handler):
             self.redirect("/blog/login")
 
     def post(self):
-        if 'main' in self.request.POST:
-            self.redirect('/blog')
-        elif 'sub' in self.request.POST:
-            subject = self.request.get('subject')
-            content = self.request.get('content')
+        if self.user:
+            if 'main' in self.request.POST:
+                self.redirect('/blog')
+            elif 'sub' in self.request.POST:
+                subject = self.request.get('subject')
+                content = self.request.get('content')
 
-            # created by someone. someone should be unique
-            uid = self.read_secure_cookie('user_id')
-            # if subject and content filled
-            if subject and content:
-                article = Article(
-                    title=subject,
-                    text=content,
-                    likes=0,
-                    who_liked=[],
-                    created_by=uid)
-                # put the article to db
-                article.put()
-                self.redirect('/blog/%s' % str(article.key().id()))
-            else:
-                # either subject or content missing
-                error = "Subject or Content is missing"
-                self.render(
-                    "new_post.html",
-                    title=subject,
-                    text=content,
-                    error=error,
-                    likes=0,
-                    who_liked=[],
-                    created_by=uid)
-
+                # created by someone. someone should be unique
+                uid = self.read_secure_cookie('user_id')
+                # if subject and content filled
+                if subject and content:
+                    article = Article(
+                        title=subject,
+                        text=content,
+                        likes=0,
+                        who_liked=[],
+                        created_by=uid)
+                    # put the article to db
+                    article.put()
+                    self.redirect('/blog/%s' % str(article.key().id()))
+                else:
+                    # either subject or content missing
+                    error = "Subject or Content is missing"
+                    self.render(
+                        "new_post.html",
+                        title=subject,
+                        text=content,
+                        error=error,
+                        likes=0,
+                        who_liked=[],
+                        created_by=uid)
+        else:
+            self.redirect('/blog/broken')
 		
 
 class MadePost(Handler):
     def get(self, post_id):
-        article = Article.by_id(post_id)
-        if not article:
-            self.redirect(
-            	'/blog/broken')
-            return
+        if self.user:
+            article = Article.by_id(post_id)
+            if not article:
+                self.redirect(
+                	'/blog/broken')
+                return
 
-        self.render(
-            "permalink.html",
-            article=article,
-            name=self.user.name,user=self.user)
-
+            self.render(
+                "permalink.html",
+                article=article,
+                name=self.user.name,user=self.user)
+        else:
+            self.redirect('/blog/broken')
+    
     def post(self, post_id):
         self.redirect('/blog')
 
