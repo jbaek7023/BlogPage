@@ -272,8 +272,7 @@ class Like(Handler):
                 article.put()
                 self.render('liked.html', user=self.user)
         else:
-            self.error = "You have to login to like the post"
-            self.redirect("/blog/login")
+            self.redirect('/blog/broken')
 
 
     def post(self, post_id):
@@ -374,9 +373,7 @@ class MadePost(Handler):
                 article=article,
                 name=self.user.name,user=self.user)
         else:
-            self.error = "You have to login to see the post"
-            self.redirect("/blog/login")
-
+            self.redirect('/blog/broken')
     
     def post(self, post_id):
         if self.user:
@@ -530,13 +527,9 @@ class NewComment(Handler):
                 self.redirect('/blog/broken')
                 return
             # render post
-            self.render(
-                "new_comment.html",
-                title=article.title,
-                user=self.user)
+            self.render("new_comment.html", title=article.title)
         else:
-            self.error = "You have to login to see the post"
-            self.redirect("/blog/login")
+            self.redirect('/blog/broken')
 
     def post(self, post_id):
         if self.user:
