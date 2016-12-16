@@ -9,6 +9,11 @@ import hashlib
 from string import letters
 from google.appengine.ext import db
 
+# import Models
+from model.user import User
+from model.article import Article
+from model.comment import Comment
+
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(
@@ -50,7 +55,6 @@ def valid_password(password):
 def valid_email(email):
     return not email or EMAIL_RE.match(email)
 
-
 class Handler(webapp2.RequestHandler):
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
@@ -84,57 +88,11 @@ class Handler(webapp2.RequestHandler):
         self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
 
 
-# user stuff
-def make_salt():
-    return ''.join(random.choice(letters) for x in xrange(5))
-
-
-def make_pw_hash(name, pw, salt=None):
-    if not salt:
-        salt = make_salt()
-    h = hashlib.sha256(name+pw+salt).hexdigest()
-    return '%s,%s' % (salt, h)
-
-
-def valid_pw(name, password, h):
-    salt = h.split(',')[0]
-    return h == make_pw_hash(name, password, salt)
-
-
 def render_str(self, template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
 
 
-class User(db.Model):
-    name = db.StringProperty(required=True)
-    pw_hash = db.StringProperty(required=True)
-    email = db.StringProperty()
-
-    @classmethod
-    def by_id(cls, uid):
-        return User.get_by_id(uid)
-
-    @classmethod
-    def by_name(cls, name):
-        user = User.all().filter('name =', name).get()
-        return user
-
-    @classmethod
-    def register(cls, username, password, email):
-        pw_hash = make_pw_hash(username, password)
-        return User(
-            name=username,
-            pw_hash=pw_hash,
-            email=email)
-
-    @classmethod
-    def login(cls, name, pw):
-        u = cls.by_name(name)
-
-        if u and valid_pw(name, pw, u.pw_hash):
-            return u
-		
 class SignUp(Handler):
     def get(self):
         self.render("signup-form.html", user=self.user)
@@ -180,6 +138,7 @@ class SignUp(Handler):
                 self.login(u)
                 self.redirect('/blog/welcome')
 
+
 class Welcome(Handler):
     def get(self):
 		if self.user:
@@ -221,30 +180,6 @@ class Logout(Handler):
         self.redirect('/blog')
 
 
-class Article(db.Model):
-    title = db.StringProperty(required=True)
-    date = db.DateTimeProperty(auto_now_add=True)
-    text = db.TextProperty(required=True)
-    last_modified = db.DateTimeProperty(auto_now=True)
-    likes = db.IntegerProperty(required=True)
-    who_liked = db.ListProperty(str)
-    created_by = db.TextProperty()
-
-    def render(self):
-        self._render_text = self.content.replace('\n', '<br>')
-        return render_str("main.html", article=self)
-
-    @classmethod
-    def by_id(self, post_id):
-        key = db.Key.from_path('Article', int(post_id))
-        article = db.get(key)
-        return article
-
-    @property
-    def comments(self):
-        return Comment.all().filter("post_id = ", str(self.key().id()))
-
-
 class MainPage(Handler):
     def get(self):
         # show up to 10 recent articles
@@ -256,6 +191,7 @@ class MainPage(Handler):
 
     def post(self):
         self.redirect("/blog/newpost")
+
 
 class Like(Handler):
     def get(self, post_id):
@@ -275,18 +211,9 @@ class Like(Handler):
             self.error = "You have to login to like the post"
             self.redirect("/blog/login")
 
-
     def post(self, post_id):
         if self.user:
             self.redirect('/blog')
-        
-
-
-    # I guess I need ajax request. the code below redirect to /blog
-    # and doesn't change the number of like.
-    # If I refresh the /blog page then, it increase the number by 1.
-    # my solution was to create another confirmation page
-    # self.redirect('/blog')
 
 
 class Unlike(Handler):
@@ -311,8 +238,6 @@ class Unlike(Handler):
         if self.user:
             self.redirect('/blog')
 
-			
-		
 
 class NewPost(Handler):
     """New Post Handler"""
@@ -384,6 +309,7 @@ class MadePost(Handler):
         else:
             self.redirect('/blog/broken')
 
+
 class EditPost(Handler):
     def get(self, post_id):
         if self.user:
@@ -444,8 +370,6 @@ class EditPost(Handler):
             self.redirect('/blog/broken')
             return
 
-        
-
 
 class DeletePost(Handler):
     def get(self, post_id):
@@ -490,6 +414,7 @@ class DeletePost(Handler):
             self.redirect('/blog/broken')
             return
 
+
 class DeletePostConfirmation(Handler):
     def get(self, post_id):
         if self.user:
@@ -515,11 +440,6 @@ class DeletePostConfirmation(Handler):
         else:
             self.redirect('/blog/broken')
 
-class Comment(db.Model):
-    comment = db.StringProperty(required=True)
-    post_id = db.StringProperty(required=True)
-    made_by = db.StringProperty(required=True)
-    created_in = db.DateTimeProperty(auto_now=True)
 	
 class NewComment(Handler):
     def get(self, post_id):
@@ -554,6 +474,7 @@ class NewComment(Handler):
         else:
             self.redirect('/blog/broken')
 
+
 class EditComment(Handler):
     def get(self, post_id, comment_id):
         if self.user:
@@ -586,6 +507,8 @@ class EditComment(Handler):
                 self.redirect('/blog/broken')
         else:
             self.redirect('/blog/broken')
+
+
 class DeleteComment(Handler):
     def get(self, post_id, comment_id):
         if self.user:
@@ -638,6 +561,7 @@ class Admin(Handler):
 class Broken(Handler):
     def get(self):
         self.render("broken_link.html")
+
 
 app = webapp2.WSGIApplication([(
     '/blog',
