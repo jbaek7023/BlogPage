@@ -38,22 +38,16 @@ def check_secure_val(h):
         return val
 
 
-# Validation checks for username, password, email
-USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
-PASS_RE = re.compile(r"^.{3,20}$")
-EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
-
-
 def valid_username(username):
-    return username and USER_RE.match(username)
+    return username and re.compile(r"^[a-zA-Z0-9_-]{3,20}$").match(username)
 
 
 def valid_password(password):
-    return password and PASS_RE.match(password)
+    return password and re.compile(r"^.{3,20}$").match(password)
 
 
 def valid_email(email):
-    return not email or EMAIL_RE.match(email)
+    return not email or re.compile(r'^[\S]+@[\S]+\.[\S]+$').match(email)
 
 class Handler(webapp2.RequestHandler):
     def initialize(self, *a, **kw):
@@ -197,8 +191,12 @@ class Like(Handler):
     def get(self, post_id):
         if self.user:
             article = Article.by_id(post_id)
+
+            # checking if the article has the user on the who-liked list
             uid = self.read_secure_cookie('user_id')
+            
             if uid in article.who_liked:
+                # user can't fall into this if clause since use won't see the like button
                 self.redirect('/blog/broken')
                 return
             else:
@@ -282,7 +280,7 @@ class NewPost(Handler):
                         who_liked=[],
                         created_by=uid)
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
 		
 
 class MadePost(Handler):
@@ -307,7 +305,7 @@ class MadePost(Handler):
         if self.user:
             self.redirect('/blog')
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
 
 
 class EditPost(Handler):
@@ -334,8 +332,7 @@ class EditPost(Handler):
                 self.redirect('/blog/broken')
                 return
         else:
-            # user ever reach here because they can't see edit button
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
             return
 
     def post(self, post_id):
@@ -367,7 +364,7 @@ class EditPost(Handler):
                 else:
                     self.redirect('/blog/broken')
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
             return
 
 
@@ -392,7 +389,7 @@ class DeletePost(Handler):
                 self.redirect('/blog/broken')
                 return
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
             return
 
     def post(self, post_id):
@@ -411,7 +408,7 @@ class DeletePost(Handler):
                     self.redirect('/blog/broken')
                     return
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
             return
 
 
@@ -427,7 +424,7 @@ class DeletePostConfirmation(Handler):
             else:
                 self.redirect('/blog/broken')
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
     def post(self, post_id):
         if self.user:
             article = Article.by_id(post_id)
@@ -438,7 +435,7 @@ class DeletePostConfirmation(Handler):
             else:
                 self.redirect('/blog/broken')
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
 
 	
 class NewComment(Handler):
@@ -472,7 +469,7 @@ class NewComment(Handler):
 
                 self.redirect('/blog/%s' % str(post_id))
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
 
 
 class EditComment(Handler):
@@ -490,7 +487,7 @@ class EditComment(Handler):
             else:
                 self.redirect('/blog/broken')
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
 
     def post(self, post_id, comment_id):
         if self.user:
@@ -506,7 +503,7 @@ class EditComment(Handler):
             else:
                 self.redirect('/blog/broken')
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
 
 
 class DeleteComment(Handler):
@@ -525,7 +522,7 @@ class DeleteComment(Handler):
             else:
                 self.redirect('/blog/broken')
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
 
     def post(self, post_id, comment_id):
         if self.user:
@@ -541,7 +538,7 @@ class DeleteComment(Handler):
             else:
                 self.redirect('/blog/broken')
         else:
-            self.redirect('/blog/broken')
+            self.redirect('/blog/login')
         
 
 class Admin(Handler):
@@ -614,4 +611,4 @@ app = webapp2.WSGIApplication([(
 ), (
     '/blog/broken',
     Broken
-)], debug=True)
+)], debug=False)
