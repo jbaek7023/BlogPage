@@ -22,10 +22,18 @@ jinja_env = jinja2.Environment(
         ),
     autoescape=True)
 
-SECRET = 'i!l~ci(ms^ld$m!zf@of$kel2'
+
+class SecretKey(db.Model):
+    """Store secret API keys in the datastore"""
+    @classmethod
+    def getSecretKey(self):
+        return 'i!l~ci(ms^ld$m!zf@of$kel2'
+
 
 def hash_str(s):
-    return hmac.new(SECRET, s).hexdigest()
+    secretKey = SecretKey.getSecretKey()
+    return hmac.new(secretKey, s).hexdigest()    
+    # return hmac.new(SECRET, s).hexdigest()
 
 
 def make_secure_val(s):
@@ -50,6 +58,12 @@ def valid_email(email):
     return not email or re.compile(r'^[\S]+@[\S]+\.[\S]+$').match(email)
 
 class Handler(webapp2.RequestHandler):
+    """
+    Handler: This is base handler for every handler 
+             to have basic functionality
+    Args:
+        webapp2.RequestHandler: web app handler provied by webapp2
+    """
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
         uid = self.read_secure_cookie('user_id')
@@ -88,6 +102,11 @@ def render_str(self, template, **params):
 
 
 class SignUp(Handler):
+    """
+    SignUp : This handlers validates username/password/email
+    Args:
+        Handler : base handler
+    """
     def get(self):
         self.render("signup-form.html", user=self.user)
 
@@ -134,6 +153,11 @@ class SignUp(Handler):
 
 
 class Welcome(Handler):
+    """
+    Welcome : shows welcome after you succeeded on sign up
+    Args:
+        Handler : base handler
+    """
     def get(self):
 		if self.user:
 			self.render('welcome.html', username = self.user.name, user=self.user)
@@ -145,10 +169,15 @@ class Welcome(Handler):
 
 
 class Login(Handler):
-	def get(self):
+    """
+    Login : perform login
+    Args:
+        Handler: the base Handler
+    """
+    def get(self):
 		self.render("login.html", user=self.user)
 
-	def post(self):
+    def post(self):
 		#check to see if it's valid username and password combination 
 		username = self.request.get('username')
 		password = self.request.get('password')
@@ -169,12 +198,25 @@ class Login(Handler):
 
 
 class Logout(Handler):
+    """
+    Logout: performs for users to log out
+    Args:
+        Handler: the base handler
+    """
     def get(self):
-        self.logout()
-        self.redirect('/blog')
+        if self.user:
+            self.logout()
+            self.redirect('/blog')
+        else:
+            self.redirect('/blog/broken')
 
 
 class MainPage(Handler):
+    """
+    MainPage: render the main page (first page)
+    Args:
+        Handler: the base handler
+    """
     def get(self):
         # show up to 10 recent articles
         q = "select * from Article order by date desc limit 10"
@@ -188,13 +230,25 @@ class MainPage(Handler):
 
 
 class Like(Handler):
+    """
+    Like: like the post by the user 
+    Args:
+        Handler: the base handler
+    """
     def get(self, post_id):
         if self.user:
             article = Article.by_id(post_id)
 
             # checking if the article has the user on the who-liked list
             uid = self.read_secure_cookie('user_id')
-            
+
+            #if the author likes their own post, 
+            article_uid = article.created_by
+            if article_uid == uid:
+                #throw an error
+                self.redirect('/blog/like_by_author')
+                return
+
             if uid in article.who_liked:
                 # user can't fall into this if clause since use won't see the like button
                 self.redirect('/blog/broken')
@@ -215,11 +269,22 @@ class Like(Handler):
 
 
 class Unlike(Handler):
+    """
+    Unlike: un-like the post by user
+    Args: 
+        Handler: the base handler
+    """
     def get(self, post_id):
         if self.user:
             article = Article.by_id(post_id)
             uid = self.read_secure_cookie('user_id')
 
+            #if the author dislike their own post, 
+            article_uid = article.created_by
+            if article_uid == uid:
+                #throw an error
+                self.redirect('/blog/like_by_author')
+                return
             if uid in article.who_liked:
                 # delete uid from who_liked array
                 article.who_liked.remove(uid)
@@ -238,7 +303,9 @@ class Unlike(Handler):
 
 
 class NewPost(Handler):
-    """New Post Handler"""
+    """
+    NewPost: post a new post by the user
+    """
     def get(self):
         # render only if user logged in
         if self.user:
@@ -284,6 +351,11 @@ class NewPost(Handler):
 		
 
 class MadePost(Handler):
+    """
+    MadePost: Show the post page (permanent link)
+    Args:
+        Handler: the base handler
+    """
     def get(self, post_id):
         if self.user:
             article = Article.by_id(post_id)
@@ -309,6 +381,11 @@ class MadePost(Handler):
 
 
 class EditPost(Handler):
+    """
+    EditPost : edit the post
+    Args:
+        Handler: the base handler
+    """
     def get(self, post_id):
         if self.user:
             article = Article.by_id(post_id)
@@ -369,6 +446,11 @@ class EditPost(Handler):
 
 
 class DeletePost(Handler):
+    """
+    DeletePost: delete the post
+    Args: 
+        Handler: the base handler
+    """
     def get(self, post_id):
         if self.user:
             article = Article.by_id(post_id)
@@ -413,6 +495,11 @@ class DeletePost(Handler):
 
 
 class DeletePostConfirmation(Handler):
+    """
+    DeletePostConfirmation: show the confirmation page after deletion
+    Args:
+        Handler: the base handler
+    """
     def get(self, post_id):
         if self.user:
             article = Article.by_id(post_id)
@@ -439,6 +526,11 @@ class DeletePostConfirmation(Handler):
 
 	
 class NewComment(Handler):
+    """
+    NewComment: push the new comment by the user's input
+    Args:
+        Handler: the base handler
+    """
     def get(self, post_id):
         if self.user:
             # get post
@@ -473,6 +565,11 @@ class NewComment(Handler):
 
 
 class EditComment(Handler):
+    """
+    EditComment: Edit the comment
+    Args:
+        Handler: the base handler
+    """
     def get(self, post_id, comment_id):
         if self.user:
             # get current comment!
@@ -507,6 +604,11 @@ class EditComment(Handler):
 
 
 class DeleteComment(Handler):
+    """
+    DeleteComment : Delete the comment
+    Args:
+        Handler: the base handler
+    """
     def get(self, post_id, comment_id):
         if self.user:
             # get current comment!
@@ -542,7 +644,10 @@ class DeleteComment(Handler):
         
 
 class Admin(Handler):
-    '''DELETE ALL COMMENTS AND ARTICLES '''
+    """
+    Admin: DELETE ALL COMMENTS AND ARTICLES (This page is hidden)
+           This handler exists just for debuggin purpose
+    """
     def get(self):
         self.render("admin.html")
 
@@ -556,9 +661,20 @@ class Admin(Handler):
 
 
 class Broken(Handler):
+    """
+    Broken: Show that users can't access in unusual way
+    """
     def get(self):
         self.render("broken_link.html")
 
+
+class LikeByAuthor(Handler):
+    """
+    LikeByAuthor: render error message page after the
+    author likes their own post
+    """
+    def get(self):
+        self.render("like_by_author.html")
 
 app = webapp2.WSGIApplication([(
     '/blog',
@@ -611,4 +727,7 @@ app = webapp2.WSGIApplication([(
 ), (
     '/blog/broken',
     Broken
+), (
+    '/blog/like_by_author',
+    LikeByAuthor
 )], debug=False)

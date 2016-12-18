@@ -1,30 +1,35 @@
 body {
     font-family: Helvetica;
     font-size: 19px;
-    color: #111111;
+    color: #111;
     width: 800px;
     margin: 0 auto;
     padding: 10px;
     display: block;
 }
+
 a {
-    color: #111111;
+    color: #111;
 }
+
 h2 {
     font-size: 22px;
     font-weight: bold;
     margin-bottom: 20px;
 }
+
 .error {
     color: red;
     position: relative;
     right: 0px;
     top: 0px;
 }
+
 .container {
     width: 100%;
     margin: 30px;
 }
+
 header {
     width: 100%;
     text-align: center;
@@ -35,9 +40,11 @@ header {
     margin-bottom: 20px;
     border-radius: 5px;
 }
+
 a {
     text-decoration: none;
 }
+
 .header-continue {
     margin-bottom: 90px;
 }
@@ -56,12 +63,12 @@ a {
     font-size: 15px;
     text-decoration: none;
     background-color: #A9CCF9;
-    color: #333333;
+    color: #333;
     padding: 2px 6px 2px 6px;
-    border-top: 1px solid #CCCCCC;
-    border-right: 1px solid #333333;
-    border-bottom: 1px solid #333333;
-    border-left: 1px solid #CCCCCC;
+    border-top: 1px solid #ccc;
+    border-right: 1px solid #333;
+    border-bottom: 1px solid #333;
+    border-left: 1px solid #ccc;
 }
 
 .perma {
@@ -84,7 +91,6 @@ input[type=text] {
     border-radius: 5px;
 }
 
-
 input[type=password] {
     width: 50%;
     font-family: monospace;
@@ -93,6 +99,7 @@ input[type=password] {
     -webkit-border-radius: 5px;
     border-radius: 5px;
 }
+
 input[type=submit] {
     font-family: monospace;
     padding: 5px 15px;
@@ -106,6 +113,7 @@ input[type=submit] {
     height: 2em;
     font-size: 17px;
 }
+
 textarea {
     width: 100%;
     height: 400px;
@@ -115,22 +123,27 @@ textarea {
     border-radius: 5px;
     margin-bottom: 10px;
 }
+
 .new-post {
     width: 700px;
 }
+
 .like-style {
     display: inline;
     font-weight: normal;
     font-size: 15px;
 }
+
 .article-name {
     display: inline;
     font-size: 24px;
 }
+
 article {
     position: relative;
     margin-bottom: 60px;
 }
+
 .article-title {
     display: block;
     padding-left: 5px;
@@ -141,9 +154,11 @@ article {
     font-weight: bold;
     margin-bottom: 0px;
 }
+
 .article-name:hover {
     text-decoration: underline;
 }
+
 .date {
     margin-top: 8px;
     display: inline;
@@ -153,6 +168,7 @@ article {
     right: 0px;
     top: 0px;
 }
+
 .article-content {
     padding-left: 10px;
     background-color: #e0e0e0;
@@ -161,16 +177,19 @@ article {
     margin: 0px;
     margin-top: 10px;
 }
+
 .new-post-title {
     font-size: 40px;
     margin-top: 40px;
     margin-bottom: 30px;
     font-weight: bold;
 }
+
 .new-post-font {
     font-size: 25px;
     letter-spacing: 2px;
 }
+
 .user_auth {
     position: relative;
     text-align: right;
@@ -178,44 +197,54 @@ article {
     vertical-align: text-top;
     font-weight: normal;
 }
+
 .blog_header {
     margin-top: 10px;
 }
+
 .user_auth_p {
     margin-top: 0;
 }
+
 .ed {
     font-size: 14px;
     padding-left: 10px;
     margin-top: 10px;
 }
+
 .comment-container-permalink {
     display: block;
     margin-bottom: 20px;
     position: relative;
     background-color: #ededed;
 }
+
 .comment-container-main {
     margin-top: 10px;
     padding-left: 10px;
 }
+
 .who-commented {
     display: inline;
     font-size: 18px;
 }
+
 .commento {
     display: inline;
     font-size: 16px;
 }
+
 h5 {
     margin-bottom: 10px;
 }
+
 .edit-delete {
     position: absolute;
     right: 0px;
     font-size: 16px;
     height: 50px;
 }
+
 
 tr {
     position: relative;
