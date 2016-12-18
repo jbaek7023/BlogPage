@@ -3,10 +3,10 @@ This is simple blog page
 You can signin, signup, logout, login, post, edit/delete, like/dislike, comment 
 
 ##How to Run the Code
-[Option 1] 
+-Option 1 
 You can see the [DEMO](https://my-blog-python.appspot.com/blog)
 
-[Option 2] 
+-Option 2
 0. Install [Python](https://www.python.org/downloads/)
 1. Install [Google App Engine SDK](https://cloud.google.com/appengine/downloads#Google_App_Engine_SDK_for_Python)
 2. Download or clone the whole file 
