@@ -1,22 +1,21 @@
 Blog Page
 ============
 This is simple blog page.
-user can signin, signup, logout, login, post, edit/delete, like/dislike, comment.
-You can see the [DEMO](https://my-blog-python.appspot.com/blog).
+The two main technologies used in this project are Google App Engine and Jinja. 
+This project is part of Full Stack Web Development Nanodegree
 
 ## Feature
-#### Main Page
+### Main Page
 ![a](video/intro.gif)
 
-#### Edit / Delete
+### Edit / Delete
 ![b](video/edit_delete.gif)
 
-#### Comment 
+### Comment 
 ![c](video/comment.gif)
 
 ## Use Case
 1. Create a Basic Blog
-* Blog must include the following features:
 * Front page that lists blog posts.
 * A form to submit new entries.
 * Blog posts have their own page.
@@ -35,7 +34,7 @@ You can see the [DEMO](https://my-blog-python.appspot.com/blog).
 * Have a logout form that validates user input, and displays the error(s) when necessary.
 * After logging out, the cookie is cleared and user is redirected to the Signup page from Step 2.
 
-5. Add Other Features on Your Own
+5. Add Other Features 
 * Users should only be able to edit/delete their posts. They receive an error message if they disobey this rule.
 * Users can like/unlike posts, but not their own. They receive an error message if they disobey this rule.
 * Users can comment on posts. They can only edit/delete their own posts, and they should receive an error message if they disobey this rule.
